@@ -16,28 +16,96 @@
 		<![endif]-->
 
 	</head>
+<!--
+At SANBI we are building a database to integration annotation related to M. tuberculosis using the Neo4j graph database as a storage platform. We will present the construction of this database, demonstrate some sample queries using the Cypher graph query languages, show how Neo4j graph databases can be integrated with Galaxy and mention some strengths and weaknesses of the Neo4j graph database.
+-->
 	<body>
-		<div class="wrapper">
+		<div class="reveal">
+			<div class="slides">
+				<section data-markdown>
+                    <script type="text/template">
+                        ![Lates calcarifer](images/lates_calcarifer.png) <!-- .element: width="30%"  -->
+                        ## How we got here
+                        * 2014-2015: working on the Asian seabass genome annotation project
+                            - What are the annotation storage options?<br />
+                                <span class="fragment">GFF3</span><span class="fragment"> or other flat files (JSON?)</span> <span class="fragment">or Chado?</span>
+                    </script>
+				</section>
+                <section data-markdown>
+                    <script type="text/template">
+                        ![Bassex database schema](images/bassex_schema.png) <!-- .element: width="40%" -->
+                        * SQLAlchemy object model <!-- .element: class="fragment" -->
+                        * PostgreSQL relational database <!-- .element: class="fragment" -->
+                        <li class="fragment"> That grew <span class="fragment">and grew</span> <span class="fragment">and grew</span> </li>
+                            - 300,000 protein entries from seabass and related species in the protein table <!-- .element: class="fragment" -->
+                    </script>
+                </section>
+				<section data-markdown>
+                    <script type="text/template">
+                    ### Maybe we should just have used Chado
 
-			<header>
+                    ![Chado sequence schema](images/sequence.diagram.png) <!-- .element: class="fragment" width="80%" -->
 
-				<h1>reveal.js</h1>
-				<p>
-					The HTML Presentation Framework &mdash; Site coming soon
-				</p>
+                    </script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+                        ![Chado modules](images/ChadoModules.png) <!-- .element: width="50%" -->
+                        * As you add annotation layers, relational databases increase rapidly in complexity <!-- .element: class="fragment" -->
+                        * As complexity increases, it becomes harder to craft efficient and intuitive queries <!-- .element: class="fragment" -->
+                        * Chado is relational, not object-relational <!-- .element: class="fragment" -->
+                    </script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+                        ## Graph Databases
+                        ![Neo4j logo](images/neo4j-logo-2015.png) <!-- .element: width="20%" style="float: right" -->
+                        * By contrast with relational databases, graph databases store data objects and their relationships explicity <!-- .element: class="fragment" -->
+                        * Queries expressed in Cypher query language <!-- .element: class="fragment" -->
+                        * In use for biological entity and relationship storage at SANBI for a few years already (BORG) <!-- .element: class="fragment" -->
+                        * Using Neo4j Community Edition (v 2.3) graph database <!-- .element: class="fragment" -->
+                    </script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+                        ## Graph databases in the COMBAT TB project
+                        ![COMBAT TB graph](images/gene-terms.png) <!-- .element: width="60%" -->
+                        * (Evolving) model for genes and other genomic features, gene products, GO and Interpro annotation, protein interactions <!-- .element: class="fragment" -->
+                        * Modelled in neomodel object-graph mapper (OGM) <!-- .element: class="fragment" -->
+                    </script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+                        ### Interacting with Neo4j
+                        * Neo4j exposes RESTful API for CRUD operations (binary Bolt protocol coming soon)
+                        * OGM maps classes to object labels, attributes to node attributes and relationships to edges
+                        * Loading is done via OGM and RESTful API
+                        * Some queries are done using Cypher directly
+                        * neostore datatype allows graphs to be stored as Galaxy datatypes (operated on using Neo4j running in Docker)
+                    </script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+                        ### Some Cypher
+                        MATCH (t:GoTerm) <-[:ASSOCIATED_WITH]- (:Protein) <-[:TRANSLATED]-
+                            (:CDS) <-[:PROCESSED_INTO]- (:Transcript) <-[:TRANSCRIBED]- (g:Gene) RETURN
+                            t.go_id, t.name, count(g) AS t_count ORDER BY t_count DESC
+                    </script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+                        ## pros and cons
 
-			</header>
+                        * pros
+                            - intuitive to model and extend model
+                            - fast queries due to explicit relationships and attribute indexing (including free text indexing with lucene)
+                        * cons
+                            - no schema 😟
+                    </script>
+                </section>
+			</div>
+		</div> 
 
-			<footer>
-
-				<p>
-					<a href="http://lab.hakim.se/reveal-js">Try the demo</a>
-					<a href="https://github.com/hakimel/reveal.js/releases">Download</a>
-				</p>
-
-			</footer>
-
-		</div>
 
 		<script>
 		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
